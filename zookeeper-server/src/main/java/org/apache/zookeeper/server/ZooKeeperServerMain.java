@@ -57,8 +57,11 @@ public class ZooKeeperServerMain {
      * Start up the ZooKeeper server.
      *
      * @param args the configfile or the port datadir [ticktime]
+     *
+     * Zookeeper 启动入口，需要配置zoo.cfg的绝对路径 找到配置文件
      */
     public static void main(String[] args) {
+
         args = new String[1];
         args[0] = "/Users/luqin001/Desktop/zsj/zsj/zookeeper-release-3.5.6/conf/zoo.cfg";
         ZooKeeperServerMain main = new ZooKeeperServerMain();

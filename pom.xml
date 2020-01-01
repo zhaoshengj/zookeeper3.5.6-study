@@ -20,6 +20,13 @@
  */
 -->
   <modelVersion>4.0.0</modelVersion>
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.zookeeper</groupId>
+      <artifactId>zookeeper</artifactId>
+      <version>3.5.4-beta</version>
+    </dependency>
+  </dependencies>
   <parent>
     <groupId>org.apache</groupId>
     <artifactId>apache</artifactId>
