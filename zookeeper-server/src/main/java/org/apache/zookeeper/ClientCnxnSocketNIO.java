@@ -338,11 +338,14 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
     private synchronized void wakeupCnxn() {
         selector.wakeup();
     }
-    
+
+    //outgoingQueue 是请求发送队列，是client存储需要被发送到server端的Packet队列
+    //pendingQueue是已经从client发送，但是要等待server响应的packet队列
+
     @Override
     void doTransport(int waitTimeOut, List<Packet> pendingQueue, ClientCnxn cnxn)
             throws IOException, InterruptedException {
-        selector.select(waitTimeOut);
+        selector.select(waitTimeOut);//找到就绪的keys个数
         Set<SelectionKey> selected;
         synchronized (this) {
             selected = selector.selectedKeys();
@@ -353,20 +356,20 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
         updateNow();
         for (SelectionKey k : selected) {
             SocketChannel sc = ((SocketChannel) k.channel());
-            if ((k.readyOps() & SelectionKey.OP_CONNECT) != 0) {
-                if (sc.finishConnect()) {
-                    updateLastSendAndHeard();
+            if ((k.readyOps() & SelectionKey.OP_CONNECT) != 0) {//如果就绪的是connect事件，这个出现在registerAndConnect函数没有立即连接成功
+                if (sc.finishConnect()) {//如果次数完成了连接
+                    updateLastSendAndHeard();//更新时间
                     updateSocketAddresses();
-                    sendThread.primeConnection();
+                    sendThread.primeConnection();//client把watches和authData等数据发过去，并更新SelectionKey为读写
                 }
-            } else if ((k.readyOps() & (SelectionKey.OP_READ | SelectionKey.OP_WRITE)) != 0) {
-                doIO(pendingQueue, cnxn);
+            } else if ((k.readyOps() & (SelectionKey.OP_READ | SelectionKey.OP_WRITE)) != 0) {//如果就绪的是读或者写事件
+                doIO(pendingQueue, cnxn);//利用pendingQueue和outgoingQueue进行IO
             }
         }
-        if (sendThread.getZkState().isConnected()) {
+        if (sendThread.getZkState().isConnected()) {//如果zk的state是已连接
             if (findSendablePacket(outgoingQueue,
-                    sendThread.tunnelAuthInProgress()) != null) {
-                enableWrite();
+                    sendThread.tunnelAuthInProgress()) != null) {//如果有可以发送的packet
+                enableWrite();//允许写
             }
         }
         selected.clear();

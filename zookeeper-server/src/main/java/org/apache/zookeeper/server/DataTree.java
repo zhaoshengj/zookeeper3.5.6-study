@@ -76,6 +76,27 @@ import java.util.concurrent.ConcurrentHashMap;
  * full paths to DataNodes and a tree of DataNodes. All accesses to a path is
  * through the hashtable. The tree is traversed only when serializing to disk.
  */
+//Quotas
+//主要完成配额目录的定义
+//    限制信息包含对某个路径的要求大小(count或者bytes)
+//    状态信息包含对某个路径的实际大小(count或者bytes)
+//以及提供path转换到对应的限制path和状态path的方法
+//
+//PathTrie
+//  字典树完成配额目录的增删查
+//  将拥有对应配额属性的节点设置标记属性property，源码会讲
+//  在zk中的目录结构为/zookeeper/quota/xxx(可以有多级目录)/zookeeper_limits
+//
+//StatsTrack
+//  就是记录某个节点实际的count和bytes长度信息
+//  在zk中的目录结构为/zookeeper/quota/xxx(可以有多级目录)/statNode
+
+//1. DataTree
+//DataTree是内存数据存储的核心，是一个树结构，代表了内存中一份完整的数据。DataTree不包含任何与网络、客户端连接及请求处理相关的业务逻辑，是一个独立的组件。
+//2. DataNode
+//DataNode是数据存储的最小单元，其内部除了保存了结点的数据内容、ACL列表、节点状态之外，还记录了父节点的引用和子节点列表两个属性，其也提供了对子节点列表进行操作的接口。
+//3. ZKDatabase
+//Zookeeper的内存数据库，管理Zookeeper的所有会话、DataTree存储和事务日志。ZKDatabase会定时向磁盘dump快照数据，同时在Zookeeper启动时，会通过磁盘的事务日志和快照文件恢复成一个完整的内存数据库。
 public class DataTree {
     private static final Logger LOG = LoggerFactory.getLogger(DataTree.class);
 
@@ -141,6 +162,7 @@ public class DataTree {
      */
     private final Set<String> ttls =
             Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+
 
     private final ReferenceCountedACLCache aclCache = new ReferenceCountedACLCache();
 

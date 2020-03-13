@@ -90,6 +90,12 @@ public class ZooDefs {
 
     @InterfaceAudience.Public
     public interface Perms {
+       // int READ = 1 << 0;//允许对本节点GetChildren和GetData操作
+       // int WRITE = 1 << 1;//允许对本节点SetData操作
+       // int CREATE = 1 << 2;//允许对子节点Create操作
+       // int DELETE = 1 << 3;//允许对子节点Delete操作
+       // int ADMIN = 1 << 4;//允许对本节点setAcl操作
+       // int ALL = READ | WRITE | CREATE | DELETE | ADMIN;//这个是组合权限
         int READ = 1 << 0;
 
         int WRITE = 1 << 1;
@@ -108,12 +114,14 @@ public class ZooDefs {
         /**
          * This Id represents anyone.
          */
+        //固定用户为anyone，为所有Client端开放权限
         public final Id ANYONE_ID_UNSAFE = new Id("world", "anyone");
 
         /**
          * This Id is only usable to set ACLs. It will get substituted with the
          * Id's the client authenticated with.
          */
+        //不使用任何id，代表任何已确认用户。
         public final Id AUTH_IDS = new Id("auth", "");
 
         /**

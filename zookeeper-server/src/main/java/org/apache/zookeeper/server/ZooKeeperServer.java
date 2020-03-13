@@ -453,14 +453,15 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
 
     public synchronized void startup() {
         if (sessionTracker == null) {
+            //创建会话追踪
             createSessionTracker();
         }
-        startSessionTracker();
-        setupRequestProcessors();
+        startSessionTracker(); //启动会话管理
+        setupRequestProcessors();//初始化请求连接
 
-        registerJMX();
+        registerJMX(); //注册JMX
 
-        setState(State.RUNNING);
+        setState(State.RUNNING);//提供服务
         notifyAll();
     }
 

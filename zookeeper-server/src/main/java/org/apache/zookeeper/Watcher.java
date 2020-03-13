@@ -28,6 +28,16 @@ import org.apache.yetus.audience.InterfaceAudience;
  * is expected to be an instance of a class that implements Watcher interface.
  * 
  */
+
+//ZK中引入Watcher机制来实现分布式的通知功能
+//ZK允许客户端向服务端注册一个Watcher监听，当服务点的的指定事件触发监听时，那么服务端就会向客户端发送事件通知，以便客户端完成逻辑操作（即客户端向服务端注册监听，并将watcher对象存在客户端的Watchermanager中
+//服务端触发事件后，向客户端发送通知，客户端收到通知后从wacherManager中取出对象来执行回调逻辑）
+
+//一次性：一旦一个watcher被触发，ZK都会将其从相应的的存储中移除，所以watcher是需要每注册一次，才可触发一次。
+//客户端串行执行：客户端watcher回调过程是一个串行同步的过程
+//轻量：watcher数据结构中只包含：通知状态、事件类型和节点路径
+
+//包含了KeeperState和EventType两个枚举类，分别代表通知状态和事件类型。
 @InterfaceAudience.Public
 public interface Watcher {
 

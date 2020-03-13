@@ -39,7 +39,19 @@ import org.slf4j.LoggerFactory;
  *      (bc)
  *   cf/
  *   (cf)
- */    
+ */
+//1.addChild方法时，注意在调用方设置child的parent为当前节点
+//2.deleteChild方法似乎有bug(或者说不准确),就是把儿子的儿子个数为1当成一种处理,0或者>=2当成另外一种处理
+//3.property的意义:设置了配额的节点，该属性为true，否则为false
+//比如说:设置了/a/b/c这个路径拥有配额，那么字典树中，property是这样的
+//
+//            root
+//          /
+//        a
+//      /
+//    b
+//  /
+//c(property:true)
 public class PathTrie {
     /**
      * the logger for this class
@@ -52,15 +64,15 @@ public class PathTrie {
     private final TrieNode rootNode ;
     
     static class TrieNode {
-        boolean property = false;
-        final HashMap<String, TrieNode> children;
+        boolean property = false;//属性，看源码表现,就是设置了配额的节点
+        final HashMap<String, TrieNode> children;//记录子节点相对路径 与 TrieNode的mapping
         TrieNode parent = null;
         /**
          * create a trienode with parent
          * as parameter
          * @param parent the parent of this trienode
          */
-        private TrieNode(TrieNode parent) {
+        private TrieNode(TrieNode parent) {//构造时，设置parent
             children = new HashMap<String, TrieNode>();
             this.parent = parent;
         }
@@ -102,6 +114,8 @@ public class PathTrie {
          * add a child to the existing node
          * @param childName the string name of the child
          * @param node the node that is the child
+         *//*
+         * 添加childName的相对路径到map,注意:在调用方设置node的parent
          */
         void addChild(String childName, TrieNode node) {
             synchronized(children) {
@@ -124,14 +138,14 @@ public class PathTrie {
                 }
                 TrieNode childNode = children.get(childName);
                 // this is the only child node.
-                if (childNode.getChildren().length == 1) { 
-                    childNode.setParent(null);
+                if (childNode.getChildren().length == 1) { //如果这个儿子只有1个儿子,那么就把这个儿子丢掉
+                    childNode.setParent(null);//被删除的子节点,parent设置为空
                     children.remove(childName);
                 }
                 else {
                     // their are more child nodes
                     // so just reset property.
-                    childNode.setProperty(false);
+                    childNode.setProperty(false);//否则这个儿子还有其他儿子，标记它不是没有配额限制,这里有个bug，就是数量为0时，也进入这个逻辑
                 }
             }
         }
@@ -193,24 +207,25 @@ public class PathTrie {
      * add a path to the path trie 
      * @param path
      */
+    //字典树的增，这里就是把一个path按照/符号分开，加入字典树
     public void addPath(String path) {
         if (path == null) {
             return;
         }
-        String[] pathComponents = path.split("/");
+        String[] pathComponents = path.split("/");//将路径按照"/" split开
         TrieNode parent = rootNode;
         String part = null;
         if (pathComponents.length <= 1) {
             throw new IllegalArgumentException("Invalid path " + path);
         }
-        for (int i=1; i<pathComponents.length; i++) {
+        for (int i=1; i<pathComponents.length; i++) {//从1开始因为路径都是"/"开头的,pathComponents[0]会是""
             part = pathComponents[i];
             if (parent.getChild(part) == null) {
-                parent.addChild(part, new TrieNode(parent));
+                parent.addChild(part, new TrieNode(parent));//一方面parent将这个child记录在map，一方面将这个child node进行初始化以及设置parent
             }
-            parent = parent.getChild(part);
+            parent = parent.getChild(part);//进入到对应的child
         }
-        parent.setProperty(true);
+        parent.setProperty(true);//最后这个节点设置配额属性
     }
     
     /**
@@ -236,8 +251,8 @@ public class PathTrie {
             parent = parent.getChild(part);
             LOG.info("{}",parent);
         }
-        TrieNode realParent  = parent.getParent();
-        realParent.deleteChild(part);
+        TrieNode realParent  = parent.getParent();//得到被删除TrieNode的parent
+        realParent.deleteChild(part);//将这个node从parent的子列表中删除
     }
     
     /**
@@ -245,6 +260,7 @@ public class PathTrie {
      * @param path the input path
      * @return the largest prefix for the input path.
      */
+    //找到最近的一个拥有配额标记的祖先节点
     public String findMaxPrefix(String path) {
         if (path == null) {
             return null;
@@ -252,23 +268,23 @@ public class PathTrie {
         if ("/".equals(path)) {
             return path;
         }
-        String[] pathComponents = path.split("/");
+        String[] pathComponents = path.split("/");//按照/分开
         TrieNode parent = rootNode;
         List<String> components = new ArrayList<String>();
         if (pathComponents.length <= 1) {
             throw new IllegalArgumentException("Invalid path " + path);
         }
-        int i = 1;
+        int i = 1;//因为路径是/开头
         String part = null;
         StringBuilder sb = new StringBuilder();
         int lastindex = -1;
         while((i < pathComponents.length)) {
             if (parent.getChild(pathComponents[i]) != null) {
                 part = pathComponents[i];
-                parent = parent.getChild(part);
+                parent = parent.getChild(part);//一层层到子节点
                 components.add(part);
-                if (parent.getProperty()) {
-                    lastindex = i-1;
+                if (parent.getProperty()) {//如果对应的子节点有标记
+                    lastindex = i-1;//更新最后一个有标记的节点(也就是最近的有标记的祖先)
                 }
             }
             else {

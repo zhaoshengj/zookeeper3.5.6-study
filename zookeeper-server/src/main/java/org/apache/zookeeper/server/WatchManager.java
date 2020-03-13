@@ -41,9 +41,9 @@ class WatchManager {
     private static final Logger LOG = LoggerFactory.getLogger(WatchManager.class);
 
     private final HashMap<String, HashSet<Watcher>> watchTable =
-        new HashMap<String, HashSet<Watcher>>();
+        new HashMap<String, HashSet<Watcher>>();//path到watcher的映射
 
-    private final HashMap<Watcher, HashSet<String>> watch2Paths =
+    private final HashMap<Watcher, HashSet<String>> watch2Paths = //watcher到path的映射
         new HashMap<Watcher, HashSet<String>>();
 
     synchronized int size(){
@@ -54,26 +54,32 @@ class WatchManager {
         return result;
     }
 
+    //添加一个watch，把path，watch放入两个表中
     synchronized void addWatch(String path, Watcher watcher) {
+        //根据path获取watcher
         HashSet<Watcher> list = watchTable.get(path);
         if (list == null) {
             // don't waste memory if there are few watches on a node
             // rehash when the 4th entry is added, doubling size thereafter
             // seems like a good compromise
             list = new HashSet<Watcher>(4);
+            //如果path在表中没有记录，则放入一个set
             watchTable.put(path, list);
         }
         list.add(watcher);
 
+        //根据watcher获取path
         HashSet<String> paths = watch2Paths.get(watcher);
         if (paths == null) {
             // cnxns typically have many watches, so use default cap here
             paths = new HashSet<String>();
+            //如果watcher在表中没有记录，则放入一个set
             watch2Paths.put(watcher, paths);
         }
         paths.add(path);
     }
 
+    //删除一个watcher
     synchronized void removeWatcher(Watcher watcher) {
         HashSet<String> paths = watch2Paths.remove(watcher);
         if (paths == null) {
@@ -94,6 +100,7 @@ class WatchManager {
         return triggerWatch(path, type, null);
     }
 
+    //从指定的watcher集合supress 中筛选出要触发的watcher，将剩下的watcher执行对应的回调
     Set<Watcher> triggerWatch(String path, EventType type, Set<Watcher> supress) {
         WatchedEvent e = new WatchedEvent(type,
                 KeeperState.SyncConnected, path);
@@ -149,6 +156,7 @@ class WatchManager {
      * watches by connection
      * @return string representation of watches
      */
+    //把watchTable和watch2Paths都写入PrintWritter,最终dump到磁盘
     synchronized void dumpWatches(PrintWriter pwriter, boolean byPath) {
         if (byPath) {
             for (Entry<String, HashSet<Watcher>> e : watchTable.entrySet()) {

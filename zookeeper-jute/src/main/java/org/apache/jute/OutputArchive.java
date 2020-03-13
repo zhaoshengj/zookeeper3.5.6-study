@@ -23,7 +23,10 @@ import java.util.List;
 import java.util.TreeMap;
 
 /**
- * Interface that alll the serializers have to implement.
+ * Interface that all the serializers have to implement.
+ *
+ *
+ * 所有串行器必须实现的接口  序列化器需要实现的接口
  *
  */
 public interface OutputArchive {

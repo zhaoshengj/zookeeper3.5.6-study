@@ -30,20 +30,24 @@ public enum CreateMode {
     /**
      * The znode will not be automatically deleted upon client's disconnect.
      */
+    //永恒节点
     PERSISTENT (0, false, false, false, false),
     /**
     * The znode will not be automatically deleted upon client's disconnect,
     * and its name will be appended with a monotonically increasing number.
     */
+    //永恒递增节点
     PERSISTENT_SEQUENTIAL (2, false, true, false, false),
     /**
      * The znode will be deleted upon the client's disconnect.
      */
+    //临时节点
     EPHEMERAL (1, true, false, false, false),
     /**
      * The znode will be deleted upon the client's disconnect, and its name
      * will be appended with a monotonically increasing number.
      */
+    //临时递增节点
     EPHEMERAL_SEQUENTIAL (3, true, true, false, false),
     /**
      * The znode will be a container node. Container
@@ -109,6 +113,7 @@ public enum CreateMode {
     /**
      * Map an integer value to a CreateMode value
      */
+    //这个方法相当于工厂方法,根据标志位flag生成对应CreateMode
     static public CreateMode fromFlag(int flag) throws KeeperException {
         switch(flag) {
         case 0: return CreateMode.PERSISTENT;

@@ -28,8 +28,11 @@ import java.io.InputStream;
  */
 public class BinaryInputArchive implements InputArchive {
     static public final String UNREASONBLE_LENGTH= "Unreasonable length = ";
+
+    // DataInput接口，用于从二进制流中读取字节
     private DataInput in;
-    
+
+    // 静态方法，用于获取Archive
     static public BinaryInputArchive getArchive(InputStream strm) {
         return new BinaryInputArchive(new DataInputStream(strm));
     }
@@ -123,7 +126,7 @@ public class BinaryInputArchive implements InputArchive {
     // make up for extra fields, etc. (otherwise e.g. clients may be able to
     // write buffers larger than we can read from disk!)
     private void checkLength(int len) throws IOException {
-        if (len < 0 || len > maxBuffer + 1024) {
+        if (len < 0 || len > maxBuffer + 1024) { // 检查长度是否合理
             throw new IOException(UNREASONBLE_LENGTH + len);
         }
     }

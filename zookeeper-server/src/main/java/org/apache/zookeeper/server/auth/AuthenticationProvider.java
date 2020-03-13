@@ -25,6 +25,9 @@ import org.apache.zookeeper.server.ServerCnxn;
  * This interface is implemented by authentication providers to add new kinds of
  * authentication schemes to ZooKeeper.
  */
+//digest：Client端由用户名和密码验证，譬如user:password，digest的密码生成方式是Sha1摘要的base64形式
+//ip：Client端由IP地址验证，譬如172.2.0.0/24
+//Sasl: 这个类定义了，但是并没有注册,我也并不清楚这个认证方式
 public interface AuthenticationProvider {
     /**
      * The String used to represent this provider. This will correspond to the

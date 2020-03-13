@@ -40,16 +40,21 @@ import org.apache.zookeeper.data.StatPersisted;
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public class DataNode implements Record {
     /** the data for this datanode */
+    //数据内容
     byte data[];
 
     /**
      * the acl map long for this datanode. the datatree has the map
      */
+    //此datanode的acl映射长
     Long acl;
 
     /**
      * the stat for this node that is persisted to disk.
      */
+    //状态信息
+
+    //简单地说,zxid (ZooKeeper Transaction Id)就是唯一，递增的一个id，来保证一个全局的顺序，每个请求对应一个唯一的zxid
     public StatPersisted stat;
 
     /**
@@ -57,6 +62,7 @@ public class DataNode implements Record {
      * does not contain the parent path -- just the last part of the path. This
      * should be synchronized on except deserializing (for speed up issues).
      */
+    //子节点集合
     private Set<String> children = null;
 
     private static final Set<String> EMPTY_SET = Collections.emptySet();

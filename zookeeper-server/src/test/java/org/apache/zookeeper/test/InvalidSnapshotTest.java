@@ -31,6 +31,7 @@ import org.apache.zookeeper.server.SyncRequestProcessor;
 import org.apache.zookeeper.server.ZooKeeperServer;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,7 @@ public class InvalidSnapshotTest extends ZKTestCase{
             "127.0.0.1:" + PortAssignment.unique();
 
     private static final File testData = new File(
-            System.getProperty("test.data.dir", "src/test/resources/data"));
+            System.getProperty("test.data.dir", "/Users/luqin001/Desktop/zsj/zsj/zookeeper"));
 
     /**
      * Verify the LogFormatter by running it on a known file.

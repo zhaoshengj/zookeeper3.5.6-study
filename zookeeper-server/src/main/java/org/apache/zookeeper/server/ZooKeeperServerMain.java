@@ -57,13 +57,16 @@ public class ZooKeeperServerMain {
      * Start up the ZooKeeper server.
      *
      * @param args the configfile or the port datadir [ticktime]
-     *
      * Zookeeper 启动入口，需要配置zoo.cfg的绝对路径 找到配置文件
+     *   配置系统参数 （ VM options ） log4j配置文件的路径。否则报错找不到log4j配置文件
+     *   -Dlog4j.configuration=file:/Users/luqin001/Desktop/zsj/zsj/zookeeper-release-3.5.6/conf/log4j.properties
      */
     public static void main(String[] args) {
 
-        args = new String[1];
-        args[0] = "/Users/luqin001/Desktop/zsj/zsj/zookeeper-release-3.5.6/conf/zoo.cfg";
+        //args = new String[1];
+
+        //出入运行参数 zoo.cfg的路径
+        //args[0] = "/Users/luqin001/Desktop/zsj/zsj/zookeeper-release-3.5.6/conf/zoo.cfg";
         ZooKeeperServerMain main = new ZooKeeperServerMain();
         try {
             main.initializeAndRun(args);
@@ -127,6 +130,8 @@ public class ZooKeeperServerMain {
             // run() in this thread.
             // create a file logger url from the command line args
             txnLog = new FileTxnSnapLog(config.dataLogDir, config.dataDir);
+
+            //创建服务器统计器
             final ZooKeeperServer zkServer = new ZooKeeperServer(txnLog,
                     config.tickTime, config.minSessionTimeout, config.maxSessionTimeout, null);
             txnLog.setServerStats(zkServer.serverStats());
@@ -144,6 +149,7 @@ public class ZooKeeperServerMain {
 
             boolean needStartZKServer = true;
             if (config.getClientPortAddress() != null) {
+                //连接工厂 默认NIO
                 cnxnFactory = ServerCnxnFactory.createFactory();
                 cnxnFactory.configure(config.getClientPortAddress(), config.getMaxClientCnxns(), false);
                 cnxnFactory.startup(zkServer);

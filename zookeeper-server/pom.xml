@@ -219,8 +219,8 @@
                 <classpath />
                 <argument>org.apache.zookeeper.version.util.VerGen</argument>
                 <argument>${project.version}</argument>
-                <argument>${git.commit.id}</argument>
-                <argument>${build.time}</argument>
+                <!--<argument>${git.commit.id}</argument>
+                <argument>${build.time}</argument>-->
               </arguments>
             </configuration>
           </execution>

@@ -950,6 +950,10 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
      * @return verified and expanded ACLs
      * @throws KeeperException.InvalidACLException
      */
+    //此方法检出acl，以确保其不为null或为空，具有有效的方案和ID，并扩展依赖于请求者的身份验证信息的任何相对ID
+    //1.如果acl列表有("world","anyone"),那么一定认证通过
+    //2.上述情况外，如果是Id的schema是"auth"，那么要看请求携带的authInfo是否是isAuthenticated的,是的话认证通过
+    //3.上述情况外,一般就是“ip”,"digest","sasl"，调用对应认证提供器的isValid方法校验id内容格式是否valid,是的话认证通过
     private List<ACL> fixupACL(String path, List<Id> authInfo, List<ACL> acls)
         throws KeeperException.InvalidACLException {
         // check for well formed ACLs
@@ -968,19 +972,23 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
             if (id == null || id.getScheme() == null) {
                 throw new KeeperException.InvalidACLException(path);
             }
-            if (id.getScheme().equals("world") && id.getId().equals("anyone")) {
+            if (id.getScheme().equals("world") && id.getId().equals("anyone")) {//如果是固定用户，为所有Client端开放权限
                 rv.add(a);
             } else if (id.getScheme().equals("auth")) {
                 // This is the "auth" id, so we have to expand it to the
                 // authenticated ids of the requestor
                 boolean authIdValid = false;
                 for (Id cid : authInfo) {
+                     /*
+                    一般情况下，默认的Id只有IP这一种(org.apache.zookeeper.server.NIOServerCnxn.NIOServerCnxn)，里面调用了
+                    authInfo.add(new Id("ip", addr.getHostAddress()));
+                     */
                     AuthenticationProvider ap =
                         ProviderRegistry.getProvider(cid.getScheme());
                     if (ap == null) {
                         LOG.error("Missing AuthenticationProvider for "
                             + cid.getScheme());
-                    } else if (ap.isAuthenticated()) {
+                    } else if (ap.isAuthenticated()) {//如果验证过了,三种实现中，IP返回false，其他两种返回true
                         authIdValid = true;
                         rv.add(new ACL(a.getPerms(), cid));
                     }
@@ -988,9 +996,9 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
                 if (!authIdValid) {
                     throw new KeeperException.InvalidACLException(path);
                 }
-            } else {
+            } else {//其他认证模式的话,如ip，digest，sasl
                 AuthenticationProvider ap = ProviderRegistry.getProvider(id.getScheme());
-                if (ap == null || !ap.isValid(id.getId())) {
+                if (ap == null || !ap.isValid(id.getId())) {//如果id的格式不valid
                     throw new KeeperException.InvalidACLException(path);
                 }
                 rv.add(a);

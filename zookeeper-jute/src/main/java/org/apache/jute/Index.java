@@ -23,6 +23,8 @@ package org.apache.jute;
  * The deserializer returns an instance that the record uses to
  * read vectors and maps. An example of usage is as follows:
  *
+ *
+ * 充当用于反序列化集合的迭代器的接口。 反序列化器返回一个实例，该记录用于读取向量和映射。用法示例如下：
  * <code>
  * Index idx = startVector(...);
  * while (!idx.done()) {
@@ -30,9 +32,12 @@ package org.apache.jute;
  *   idx.incr();
  * }
  * </code>
+ * 反序列化器的迭代器
  *
  */
 public interface Index {
+    // 是否已经完成
     public boolean done();
+    // 下一项
     public void incr();
 }

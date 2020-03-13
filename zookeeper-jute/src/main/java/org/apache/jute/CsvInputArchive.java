@@ -28,9 +28,11 @@ import java.io.UnsupportedEncodingException;
  *
  */
 class CsvInputArchive implements InputArchive {
-    
+
+    // 推回字节流
     private PushbackReader stream;
-    
+
+    // 内部类，对应CsvInputArchive索引
     private class CsvIndex implements Index {
         public boolean done() {
             char c = '\0';

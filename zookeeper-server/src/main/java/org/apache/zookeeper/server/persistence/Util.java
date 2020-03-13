@@ -134,6 +134,7 @@ public class Util {
      * @param prefix the file name prefix (snapshot or log)
      * @return zxid
      */
+    // 从文件名中解析出zxid
     public static long getZxidFromName(String name, String prefix) {
         long zxid = -1;
         String nameParts[] = name.split("\\.");
@@ -291,6 +292,7 @@ public class Util {
         if(files==null)
             return new ArrayList<File>(0);
         List<File> filelist = Arrays.asList(files);
+        // 进行排序，Comparator是关键，根据zxid进行排序
         Collections.sort(filelist, new DataDirFileComparator(prefix, ascending));
         return filelist;
     }

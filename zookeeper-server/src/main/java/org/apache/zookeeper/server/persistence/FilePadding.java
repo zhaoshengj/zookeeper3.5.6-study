@@ -93,6 +93,7 @@ public class FilePadding {
      * padding was done.
      * @throws IOException
      */
+    //用填充计算新文件的大小。仅当当前文件位置与文件末尾足够接近（小于4K）并且preAllocSize> 0时，我们才返回新的大小
     // VisibleForTesting
     public static long calculateFileSizeWithPadding(long position, long fileSize, long preAllocSize) {
         // If preAllocSize is positive and we are within 4KB of the known end of the file calculate a new file size

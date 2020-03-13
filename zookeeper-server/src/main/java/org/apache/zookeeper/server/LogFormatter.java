@@ -19,6 +19,7 @@
 package org.apache.zookeeper.server;
 
 import java.io.EOFException;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -42,10 +43,13 @@ public class LogFormatter {
 
     /**
      * @param args
+     *
+     * 测试日志文件
      */
     public static void main(String[] args) throws Exception {
         if (args.length != 1) {
-            System.err.println("USAGE: LogFormatter log_file");
+            System.out.println("测试");
+            //System.err.println("USAGE: LogFormatter log_file");
             System.exit(2);
         }
         FileInputStream fis = new FileInputStream(args[0]);

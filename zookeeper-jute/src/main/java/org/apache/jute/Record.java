@@ -24,12 +24,16 @@ import java.io.IOException;
 
 /**
  * Interface that is implemented by generated classes.
- * 
+ *
+ *
+ * 用于网络传输或者本地存储的类型都实现该接口
  */
 @InterfaceAudience.Public
 public interface Record {
+    //序列化
     public void serialize(OutputArchive archive, String tag)
         throws IOException;
+    //反序列化
     public void deserialize(InputArchive archive, String tag)
         throws IOException;
 }

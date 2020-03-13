@@ -39,19 +39,19 @@ public class ReferenceCountedACLCache {
     private static final Logger LOG = LoggerFactory.getLogger(ReferenceCountedACLCache.class);
 
     final Map<Long, List<ACL>> longKeyMap =
-            new HashMap<Long, List<ACL>>();
+            new HashMap<Long, List<ACL>>(); //一个long值对应的ACL列表
 
     final Map<List<ACL>, Long> aclKeyMap =
-            new HashMap<List<ACL>, Long>();
+            new HashMap<List<ACL>, Long>(); //一个ACL列表对应的long值
 
     final Map<Long, AtomicLongWithEquals> referenceCounter =
-            new HashMap<Long, AtomicLongWithEquals>();
-    private static final long OPEN_UNSAFE_ACL_ID = -1L;
+            new HashMap<Long, AtomicLongWithEquals>(); //Key是一个ACL列表的映射值，value是记录引用次数
+    private static final long OPEN_UNSAFE_ACL_ID = -1L;//默认不安全的权限，对应("world","anyone")
 
     /**
      * these are the number of acls that we have in the datatree
      */
-    long aclIndex = 0;
+    long aclIndex = 0; //记录当前acl对应的long值的id(不断增加)
 
     /**
      * converts the list of acls to a long.
@@ -198,6 +198,8 @@ public class ReferenceCountedACLCache {
         }
     }
 
+    //继承AtomicLong类，实现equals方法
+    //用来记录引用次数
     private static class AtomicLongWithEquals extends AtomicLong {
 
         private static final long serialVersionUID = 3355155896813725462L;

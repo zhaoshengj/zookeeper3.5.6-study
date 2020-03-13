@@ -48,8 +48,15 @@ import org.apache.zookeeper.server.util.SerializeUtils;
  * and deserializing the right snapshot.
  * and provides access to the snapshots.
  */
+//Zookeeper的数据在内存中是以DataTree为数据结构存储的
+//而快照就是每间隔一段时间Zookeeper就会把整个DataTree的数据序列化然后把它存储在磁盘中
+//快照文件是指定时间间隔对数据的备份，所以快照文件中数据通常都不是最新的
+//多久抓一个快照这也是可以配置的snapCount配置项用于配置处理几个事务请求后生成一个快照文件；
 public class FileSnap implements SnapShot {
+    //snap文件目录
     File snapDir;
+
+    //是否关闭
     private volatile boolean close = false;
     private static final int VERSION = 2;
     private static final long dbId = -1;
@@ -72,33 +79,41 @@ public class FileSnap implements SnapShot {
         // we run through 100 snapshots (not all of them)
         // if we cannot get it running within 100 snapshots
         // we should  give up
+        //找到最新的100个(大概率)valid的快照文件
         List<File> snapList = findNValidSnapshots(100);
         if (snapList.size() == 0) {
             return -1L;
         }
         File snap = null;
         boolean foundValid = false;
+        //将这些快照文件按新旧排序，直到第一个合法的就break
         for (int i = 0, snapListSize = snapList.size(); i < snapListSize; i++) {
             snap = snapList.get(i);
             LOG.info("Reading snapshot " + snap);
             try (InputStream snapIS = new BufferedInputStream(new FileInputStream(snap));
                  CheckedInputStream crcIn = new CheckedInputStream(snapIS, new Adler32())) {
                 InputArchive ia = BinaryInputArchive.getArchive(crcIn);
+                //根据ia反序列化到dataTree以及sessions
                 deserialize(dt, sessions, ia);
+                //反序列填充session和dataTree之后，计算checkSum
                 long checkSum = crcIn.getChecksum().getValue();
                 long val = ia.readLong("val");
+                //比较checkSum
                 if (val != checkSum) {
                     throw new IOException("CRC corruption in snapshot :  " + snap);
                 }
                 foundValid = true;
+                //如果前100个有一个valid，就break
                 break;
             } catch (IOException e) {
                 LOG.warn("problem reading snap file " + snap, e);
             }
         }
+        //如果前100个中一个valid都没有
         if (!foundValid) {
             throw new IOException("Not able to find valid snapshots in " + snapDir);
         }
+        //从最近的第一个valid的snap文件中，解析出zxid
         dt.lastProcessedZxid = Util.getZxidFromName(snap.getName(), SNAPSHOT_FILE_PREFIX);
         return dt.lastProcessedZxid;
     }
@@ -113,13 +128,13 @@ public class FileSnap implements SnapShot {
     public void deserialize(DataTree dt, Map<Long, Integer> sessions,
             InputArchive ia) throws IOException {
         FileHeader header = new FileHeader();
-        header.deserialize(ia, "fileheader");
+        header.deserialize(ia, "fileheader");// 反序列化至header
         if (header.getMagic() != SNAP_MAGIC) {
             throw new IOException("mismatching magic headers "
                     + header.getMagic() +
                     " !=  " + FileSnap.SNAP_MAGIC);
         }
-        SerializeUtils.deserializeSnapshot(dt,ia,sessions);
+        SerializeUtils.deserializeSnapshot(dt,ia,sessions);//反序列化至dataTree和sessions
     }
 
     /**
@@ -146,6 +161,7 @@ public class FileSnap implements SnapShot {
      * less than n in case enough snapshots are not available).
      * @throws IOException
      */
+    //找到最近n个(大概)合理的快照文件，按从新到旧排序
     private List<File> findNValidSnapshots(int n) throws IOException {
         List<File> files = Util.sortDataDir(snapDir.listFiles(), SNAPSHOT_FILE_PREFIX, false);
         int count = 0;
@@ -155,6 +171,7 @@ public class FileSnap implements SnapShot {
             // from the valid snapshot and continue
             // until we find a valid one
             try {
+                //一个minor check,来看这个文件是否大概率valid
                 if (Util.isValidSnapshot(f)) {
                     list.add(f);
                     count++;
@@ -224,10 +241,10 @@ public class FileSnap implements SnapShot {
                 //CheckedOutputStream cout = new CheckedOutputStream()
                 OutputArchive oa = BinaryOutputArchive.getArchive(crcOut);
                 FileHeader header = new FileHeader(SNAP_MAGIC, VERSION, dbId);
-                serialize(dt, sessions, oa, header);
-                long val = crcOut.getChecksum().getValue();
+                serialize(dt, sessions, oa, header);//将dt,session,header进行序列化
+                long val = crcOut.getChecksum().getValue();//得到checksum，写入
                 oa.writeLong(val, "val");
-                oa.writeString("/", "path");
+                oa.writeString("/", "path");//写入"\"作为结束标记,这也是判断是否highly valid的条件之一
                 sessOS.flush();
             }
         }
